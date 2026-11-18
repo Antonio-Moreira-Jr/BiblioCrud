@@ -22,7 +22,7 @@
                 <form action="<?= $assuntoEdicao ? '/assuntos/atualizar' : '/assuntos/inserir' ?>" method="POST">
                     
                     <?php if ($assuntoEdicao): ?>
-                        <input type="hidden" name="id" value="<?= $assuntoEdicao['codAs'] ?>">
+                        <input type="hidden" name="codAs" value="<?= $assuntoEdicao['codAs'] ?>">
                     <?php endif; ?>
 
                     <div class="mb-3">
