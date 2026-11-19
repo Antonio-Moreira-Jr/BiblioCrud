@@ -5,6 +5,8 @@ namespace App\Controllers;
 use App\Models\LivroModel;
 use App\Models\AutorModel;
 use App\Models\AssuntoModel;
+use App\Cache\CacheFactory;
+use App\Cache\KeysCache;
 
 class LivroController
 {
@@ -24,7 +26,7 @@ class LivroController
         $livroEdicao = null;
 
         if (!empty($_GET['editar'])) {
-            $livroEdicao = $this->livroModel->getLivroPorCodl($_GET['editar']);
+            $livroEdicao = $this->livroModel->getLivroPorCodl((int) $_GET['editar']);
         }
 
         if (!empty($_SESSION['old_livro'])) {
@@ -60,12 +62,13 @@ class LivroController
 
         try {
             $this->livroModel->inserir($validacao['dados'], $validacao['autores'], $validacao['assuntos']);
-        } catch (\Throwable $e) {
+        } catch (\PDOException $e) {
             error_log('[Livros] Erro ao inserir: ' . $e->getMessage());
             header('Location: /livros?erro=' . urlencode('Erro ao cadastrar o livro no banco de dados.'));
             exit;
         }
 
+        CacheFactory::criar()->delete(KeysCache::DASHBOARD);
         header('Location: /livros');
         exit;
     }
@@ -86,12 +89,13 @@ class LivroController
 
         try {
             $this->livroModel->atualizar($codl, $validacao['dados'], $validacao['autores'], $validacao['assuntos']);
-        } catch (\Throwable $e) {
+        } catch (\PDOException $e) {
             error_log('[Livros] Erro ao atualizar: ' . $e->getMessage());
             header('Location: /livros?editar=' . $codl . '&erro=' . urlencode('Erro ao atualizar o livro.'));
             exit;
         }
 
+        CacheFactory::criar()->delete(KeysCache::DASHBOARD);
         header('Location: /livros');
         exit;
     }
@@ -102,13 +106,14 @@ class LivroController
         if ($codl > 0) {
             try {
                 $this->livroModel->excluir($codl);
-            } catch (\Throwable $e) {
+            } catch (\PDOException $e) {
                 error_log('[Livros] Erro ao excluir: ' . $e->getMessage());
                 header('Location: /livros?erro=' . urlencode('Erro ao excluir o livro.'));
                 exit;
             }
         }
 
+        CacheFactory::criar()->delete(KeysCache::DASHBOARD);
         header('Location: /livros');
         exit;
     }
@@ -138,8 +143,11 @@ class LivroController
             return ['erro' => 'Informe um ano de publicação válido.'];
         }
 
-        $valorNormalizado = str_replace(['R$', ' ', '.'], '', $valorBruto);
-        $valorNormalizado = str_replace(',', '.', $valorNormalizado);
+        // Com vírgula, o ponto é separador de milhar ("1.234,56"); sem vírgula, o ponto é decimal ("59.90").
+        $valorNormalizado = str_replace(['R$', ' '], '', $valorBruto);
+        if (str_contains($valorNormalizado, ',')) {
+            $valorNormalizado = str_replace(['.', ','], ['', '.'], $valorNormalizado);
+        }
 
         if ($valorNormalizado === '' || !is_numeric($valorNormalizado) || $valorNormalizado < 0) {
             return ['erro' => 'Informe um preço válido para o livro.'];

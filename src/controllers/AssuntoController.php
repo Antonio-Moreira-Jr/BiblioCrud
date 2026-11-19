@@ -2,6 +2,8 @@
 
 namespace App\controllers;
 
+use App\Cache\CacheFactory;
+use App\Cache\KeysCache;
 use App\models\AssuntoModel;
 
 class AssuntoController {
@@ -44,6 +46,7 @@ class AssuntoController {
 
             $this->assuntoModel->inserir($descricao);
         }
+        CacheFactory::criar()->delete(KeysCache::DASHBOARD);
         header('Location: /assuntos');
         exit;
     }
@@ -65,6 +68,7 @@ class AssuntoController {
 
             $this->assuntoModel->atualizar($codAs, $descricao);
         }
+        CacheFactory::criar()->delete(KeysCache::DASHBOARD);
         header('Location: /assuntos');
         exit;
     }
@@ -85,6 +89,7 @@ class AssuntoController {
                 header('Location: /assuntos?erro=' . urlencode('Erro de integridade ao excluir o autor.'));
             }
         }
+        CacheFactory::criar()->delete(KeysCache::DASHBOARD);
         header('Location: /assuntos');
         exit;
     }

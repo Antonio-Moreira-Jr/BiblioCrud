@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Cache\CacheFactory;
+use App\Cache\KeysCache;
 use App\Models\AutorModel;
 
 class AutorController {
@@ -50,6 +52,7 @@ class AutorController {
             exit;
         }
 
+        CacheFactory::criar()->delete(KeysCache::DASHBOARD);
         header('Location: /autores');
         exit;
     }
@@ -81,6 +84,7 @@ class AutorController {
             exit;
         }
 
+        CacheFactory::criar()->delete(KeysCache::DASHBOARD);
         header('Location: /autores');
         exit;
     }
@@ -103,6 +107,7 @@ class AutorController {
             }
         }
 
+        CacheFactory::criar()->delete(KeysCache::DASHBOARD);
         header('Location: /autores');
         exit;
     }
